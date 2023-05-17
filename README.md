@@ -2,7 +2,7 @@
 ########################################################################################################################################################
 ############# KobraKai - No Mercy Hacker Blocker for FreePBX Machines - By Pietro Casoar with help from Chat GPT-4 #####################################
 ########################################################################################################################################################
-# This software is a no nonsense blocker for hackers that attempt brute force attacks on your FreePBX (Or Asterisk / Sangoma) devices.                 #
+# This software is a no nonsense blocker against hackers that attempt brute force attacks on your FreePBX (Or Asterisk / Sangoma) devices.             #
 # Note that this software is NOT meant for noobs/novices, you need to know what you are doing around a linux system and have knowledge of iptables.    #
 #                                                                                                                                                      #
 # You are Free to distribute this script anywhere, with the caveat that you keep my name as the original author of this script                         #
