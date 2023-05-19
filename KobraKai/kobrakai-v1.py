@@ -54,6 +54,7 @@ import logging
 # Parse command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--debug", help="turn on debug mode", action="store_true")
+parser.add_argument("--range", help="block the entire IP range", action="store_true")
 args = parser.parse_args()
 
 # Configure the watchdog logging module based on command line argument
@@ -88,6 +89,9 @@ def check_hacker_ips():
 
 def update_iptables(ip, action):
     print(f"Updating iptables for {ip} with action {action}")
+    # Modify IP to block range if --range argument is provided
+    if args.range:
+        ip = '.'.join(ip.split('.')[:2]) + '.0.0/16'
     # Update iptables rule
     cmd = f"iptables -{action} INPUT -s {ip} -j DROP"
     try:
