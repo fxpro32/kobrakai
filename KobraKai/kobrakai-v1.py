@@ -1,6 +1,6 @@
 ########################################################################################################################################################
 ########################################################################################################################################################
-################## KobraKai - No Mercy Hacker Blocker for FreePBX Machines - By Pietro Casoar with help from Chat GPT-4 ################################
+########################## KobraKai - No Mercy Hacker Blocker for FreePBX Machines - By FXPRO with help from Chat GPT-4 ################################
 ########################################################################################################################################################
 # This software is a no nonsense blocker against hackers that attempt brute force attacks on your FreePBX(c) (Or Asterisk(c) / Sangoma(cc)) devices.   #
 # Note that this software is NOT meant for noobs/novices, you need to know what you are doing around a linux system and have at least basic knowledge  #
@@ -9,7 +9,7 @@
 ########################################################################################################################################################
 # You are Free to distribute and edit/add to this script anywhere, with the caveat that you keep my name as the original author of this script         #
 # KobraKai - VoIP Hacker Blocker Script                                                                                                                #
-# Copyright (c) 2023 Pietro Casoar                                                                                                                     #
+# Copyright (c) 2023 FXPRO                                                                                                                             #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  #
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER   #
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS #
