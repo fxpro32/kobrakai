@@ -1,42 +1,40 @@
-# kobrakai Readme
-########################################################################################################################################################
-##################### KobraKai - No Mercy Hacker Blocker for FreePBX Machines - By FXPRO with help from Chat GPT-4 #####################################
-########################################################################################################################################################
-# This software is a no nonsense blocker against hackers that attempt brute force attacks on your FreePBX (Or Asterisk / Sangoma) devices.             #
-# Note that this software is NOT meant for noobs/novices, you need to know what you are doing around a linux system and have knowledge of iptables.    #
-#                                                                                                                                                      #
-# You are Free to distribute this script anywhere, with the caveat that you keep my name as the original author of this script                         #
-# KobraKai - VoIP Hacker Blocker Script                                                                                                                #
-# Copyright (c) 2023 FXPRO                                                                                                                             #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  #
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER   #
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS #
-# IN THE SOFTWARE. USE AT YOUR OWN RISK.                                                                                                               #
-########################################################################################################################################################
-#                                                                                                                                                      #
-# NOTE: DEBUG Feature should be with the following usage: [python3 kobrakai-v1.py --debug]                                                             #
-#                                                                                                                                                      #
-# This software has been tested and running continuously on a FreePBX image (Raspberri pi 4) with great success, block all those scumbag hackers       #
-#                                                                                                                                                      #
-# In Short, when an asshole VoIP hacker tries to brute force attack your machine which can ultimately result in having your bandwidth or even minutes  #
-# stolen, this software will immediately identify and mercilessly block the IP Addresses of these low life scumbag hackers, by applying it to iptables #
-# rules and saving iptables, within a couple of seconds.                                                                                               #
-#                                                                                                                                                      #
-# Even if your machine reboots or has a power failure, when it boots up again, it will automatically be running in the background and                  #
-# continue to block all hackers from brute force attacking your FreePBX machine.                                                                       #
-#                                                                                                                                                      #
-# Just be aware to make sure you add your own IP Address and or Dyns Domain Name, BEFORE you activate the service, so that you don't block yourself    #
-# incase you make an error with the SIP / IAX extension or password, otherwise this software will immediately and permanently lock you out of your     #
-# system, without mercy.                                                                                                                               #
-#                                                                                                                                                      #
-# If however, that happens to you, you must log in locally to the server and perform 2 actions:                                                        #
-# 1/ You must edit the "hacker-ips-list.txt" file and remove your IP Address.                                                                          #
-# and                                                                                                                                                  #
-# 2/ Use the "iptables -D INPUT -s {ip} -j DROP" command to remove your ip address from IPTABLES.                                                      #
-# Note: {ip} = your IP Address (either local or external or both), depending on what result you get after issuing the "iptables -L -v" command.        #
-#                                                                                                                                                      #
-# To avoid the above mentioned, make sure you add your IP Address (Local & External / DynDns) to the "ignore-list.txt" file before executing the code  #
-########################################################################################################################################################
+kobrakai Readme
+KobraKai - No Mercy Hacker Blocker for FreePBX Machines - By FXPRO with help from Chat GPT-4
+
+This software is a no nonsense blocker against hackers that attempt brute force attacks on your FreePBX (Or Asterisk / Sangoma) devices.
+Note that this software is NOT meant for noobs/novices, you need to know what you are doing around a linux system and have knowledge of iptables.
+
+You are Free to distribute this script anywhere, with the caveat that you keep my name as the original author of this script
+KobraKai - VoIP Hacker Blocker Script
+Copyright (c) 2023 FXPRO
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+IN THE SOFTWARE. USE AT YOUR OWN RISK.
+
+NOTE: DEBUG Feature should be with the following usage: [python3 kobrakai-v1.py --debug]
+
+This software has been tested and running continuously on a FreePBX image (Raspberri pi 4) with great success, block all those scumbag hackers
+
+In Short, when an asshole VoIP hacker tries to brute force attack your machine which can ultimately result in having your bandwidth or even minutes
+stolen, this software will immediately identify and mercilessly block the IP Addresses of these low life scumbag hackers, by applying it to iptables
+rules and saving iptables, within a couple of seconds.
+
+Even if your machine reboots or has a power failure, when it boots up again, it will automatically be running in the background and
+continue to block all hackers from brute force attacking your FreePBX machine.
+
+Just be aware to make sure you add your own IP Address and or Dyns Domain Name, BEFORE you activate the service, so that you don't block yourself
+incase you make an error with the SIP / IAX extension or password, otherwise this software will immediately and permanently lock you out of your
+system, without mercy.
+
+If however, that happens to you, you must log in locally to the server and perform 2 actions:
+1/ You must edit the "hacker-ips-list.txt" file and remove your IP Address.
+and
+2/ Use the "iptables -D INPUT -s {ip} -j DROP" command to remove your ip address from IPTABLES.
+Note: {ip} = your IP Address (either local or external or both), depending on what result you get after issuing the "iptables -L -v" command.
+
+To avoid the above mentioned, make sure you add your IP Address (Local & External / DynDns) to the "ignore-list.txt" file before executing the code
+
 
 Description:
 
