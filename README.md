@@ -92,16 +92,16 @@ and then type the default/your root password for your machine. Default password=
 Once you have logged in, you must type the following to install the required applications.
 
 Type: (without the hash #)
-# apt update
+```# apt update```
 
 then type
-# apt install python3-pip
+```# apt install python3-pip```
 
 and then type
-# pip3 install watchdog
+```# pip3 install watchdog```
 
 and finally, type
-# apt install netfilter-persistent
+```# apt install netfilter-persistent```
 
 Wait for these to install correctly with no errors.
 Note that without these 3 apps, the script will not work.
@@ -109,27 +109,27 @@ Note that without these 3 apps, the script will not work.
 9/ Once that is done, we need to perform the final steps in preparation before running the script and that is we need to now prepare IPTABLES to be able to save rules and have then readily available for the script to read.
 Using your ssh terminal (or local terminal) from root prompt (because you must have root privileges): (without the hash #)
 
-# touch /etc/iptables.up.rules
+```# touch /etc/iptables.up.rules```
 
 Then, you need to ensure that the file is writable:
-# chmod u+w /etc/iptables.up.rules
+```# chmod u+w /etc/iptables.up.rules```
 
 Now, you can manually save the current iptables rules to this file to ensure that everything is working:
 
-# iptables-save > /etc/iptables.up.rules
+```# iptables-save > /etc/iptables.up.rules```
 
 10/ Now the machine has been prepared and you are ready to activate the script.
 
 Type: (without the hash #)
 
-# systemctl enable kobrakai.service
+```# systemctl enable kobrakai.service```
 This will enable the kobrakai service and enable the script to run in the background
 
-# systemctl start kobrakai.service
+```# systemctl start kobrakai.service```
 This starts the kobrakai service
 
 and to check it's operation, you must type:
-# systemctl status kobrakai.service
+```# systemctl status kobrakai.service```
 
 A correct output that doesn't have any errors should look something like this:
 
@@ -148,7 +148,7 @@ May 14 08:20:23 raspbx systemd[1]: Started KobraKai No Mercy Scumbag VoIP Hacker
 
 To check the service whilst running and any important events, you can use the following:
 
-# journalctl -u kobrakai.service
+```# journalctl -u kobrakai.service```
 The output of this will provide a log which looks something like this, if there are no errors (which should be the case if you've done everything described above, correctly)
 ------------------------------------------------------------------------------------------------------------------------------------------
 May 14 07:20:56 raspbx systemd[1]: Stopping KobraKai No Mercy VoIP Hacker Blocker for use with FreePBX (Asterisk/Sangoma) Software...
@@ -162,7 +162,7 @@ In order to exit this log, you just need to press CTRL and C.
 
 If you want to check on the status of the hacker-ips-list.txt file, to see how many or if any new hacker scumbag IP Addresses have been detected and logged, just use the following command:
 
-# cat /home/KobraKai/hacker-ips-list.txt
+```# cat /home/KobraKai/hacker-ips-list.txt```
 
 Now you can rest easy because your FreePBX machine is protected by an additional firewall process which I have working together with the essential Fail2ban (having set guest access to OFF in the advanced settings of asterisk/freepbx).  I hope this helps anyone who is frustrated or who just doesn't have the time to go through FreePBX settings to make sure everything is locked down, or whoever doesn't have the time or knowledge to protect their system.
 You are free to distribute this script, just make sure you retain my name in the top header of the script with the description.
