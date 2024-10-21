@@ -2,7 +2,7 @@
 Description=KobraKai - No Mercy VoIP Hacker Blocker for use with FreePBX(c) (Asterisk(c)/Sangoma(c)) Software
 
 [Service]
-ExecStart=/usr/bin/python3 /home/KobraKai/kobrakai-v1.py --range
+ExecStart=/usr/bin/python3 /home/KobraKai/kobrakai-v1.py
 Restart=always
 
 [Install]
