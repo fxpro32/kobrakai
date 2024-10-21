@@ -16,10 +16,9 @@ NOTE: DEBUG Feature should be with the following usage: [python3 kobrakai-v1.py 
 
 This software has been tested and running continuously on a FreePBX image (Raspberri pi 4) with great success, block all those scumbag hackers
 
-In Short, when an asshole VoIP hacker tries to brute force attack your machine which can ultimately result in having your bandwidth or even minutes
+In Short, when a VoIP hacker tries to brute force attack your machine which can ultimately result in having your bandwidth or even minutes
 stolen, this software will immediately identify and mercilessly block the IP Addresses of these low life scumbag hackers, by applying it to iptables
-rules and saving iptables, within a couple of seconds.
-
+rules and saving iptables, almost instantaneously.
 Even if your machine reboots or has a power failure, when it boots up again, it will automatically be running in the background and
 continue to block all hackers from brute force attacking your FreePBX machine.
 
@@ -35,6 +34,7 @@ Note: {ip} = your IP Address (either local or external or both), depending on wh
 
 To avoid the above mentioned, make sure you add your IP Address (Local & External / DynDns) to the "ignore-list.txt" file before executing the code
 
+```Why don't I just use Fail2Ban ?  The honest answer is even after configurting it, making many different types of changes, it failed to block any hackers properly, thus rendering Fail2Ban in  my opinion as garbage and useless.  This in turn resulted in significant losses due to hackers being able to access my PSTN/Mobile/Satellite trunk and push traffic through my IPPBX for around 10 minutes, which ultimately resulted in a $10,000 phone bill.  So instead of complaining, I made my own script that stops these criminal hackers in their tracks and since implementation of this, I have had ZERO breaches. This means Fail2Ban did NOT protect my IPPBX but the Kobrakai DID protect me and has been protecting me for more than a year now.```
 
 Description:
 
