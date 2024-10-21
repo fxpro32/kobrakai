@@ -148,7 +148,7 @@ May 14 08:20:23 raspbx systemd[1]: Started KobraKai No Mercy Scumbag VoIP Hacker
 
 To check the service whilst running and any important events, you can use the following:
 
-```# journalctl -u kobrakai.service```
+# journalctl -u kobrakai.service
 The output of this will provide a log which looks something like this, if there are no errors (which should be the case if you've done everything described above, correctly)
 ------------------------------------------------------------------------------------------------------------------------------------------
 May 14 07:20:56 raspbx systemd[1]: Stopping KobraKai No Mercy VoIP Hacker Blocker for use with FreePBX (Asterisk/Sangoma) Software...
@@ -162,7 +162,7 @@ In order to exit this log, you just need to press CTRL and C.
 
 If you want to check on the status of the hacker-ips-list.txt file, to see how many or if any new hacker scumbag IP Addresses have been detected and logged, just use the following command:
 
-```# cat /home/KobraKai/hacker-ips-list.txt```
+# cat /home/KobraKai/hacker-ips-list.txt
 
 Now you can rest easy because your FreePBX machine is protected by an additional firewall process which I have working together with the essential Fail2ban (having set guest access to OFF in the advanced settings of asterisk/freepbx).  I hope this helps anyone who is frustrated or who just doesn't have the time to go through FreePBX settings to make sure everything is locked down, or whoever doesn't have the time or knowledge to protect their system.
 You are free to distribute this script, just make sure you retain my name in the top header of the script with the description.
