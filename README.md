@@ -133,7 +133,7 @@ and to check it's operation, you must type:
 
 A correct output that doesn't have any errors should look something like this:
 
-root@raspbx:/KobraKai# systemctl status kobrakai.service
+```root@raspbx:/KobraKai# systemctl status kobrakai.service
 ------------------------------------------------------------------------------------------------------------------------------------------
 ● kobrakai.service - KobraKai No Mercy VoIP Hacker Blocker for use with FreePBX (Asterisk/Sangoma) Software
    Loaded: loaded (/etc/systemd/system/kobrakai.service; enabled; vendor preset: enabled)
@@ -143,7 +143,7 @@ root@raspbx:/KobraKai# systemctl status kobrakai.service
    CGroup: /system.slice/kobrakai.service
            └─6551 /usr/bin/python3 /home/KobraKai/kobrakai-v1.py
 
-May 14 08:20:23 raspbx systemd[1]: Started KobraKai No Mercy Scumbag VoIP Hacker Blocker for use with FreePBX (Asterisk/Sangoma) Software.
+May 14 08:20:23 raspbx systemd[1]: Started KobraKai No Mercy Scumbag VoIP Hacker Blocker for use with FreePBX (Asterisk/Sangoma) Software.```
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 To check the service whilst running and any important events, you can use the following:
