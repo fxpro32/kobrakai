@@ -34,7 +34,7 @@ Note: {ip} = your IP Address (either local or external or both), depending on wh
 
 To avoid the above mentioned, make sure you add your IP Address (Local & External / DynDns) to the "ignore-list.txt" file before executing the code
 
-```Why don't I just use Fail2Ban ?  The honest answer is even after configurting it, making many different types of changes, it failed to block any hackers properly, thus rendering Fail2Ban in  my opinion as garbage and useless.  This in turn resulted in significant losses due to hackers being able to access my PSTN/Mobile/Satellite trunk and push traffic through my IPPBX for around 10 minutes, which ultimately resulted in a $10,000 phone bill.  So instead of complaining, I made my own script that stops these criminal hackers in their tracks and since implementation of this, I have had ZERO breaches. This means Fail2Ban did NOT protect my IPPBX but the Kobrakai DID protect me and has been protecting me for more than a year now.```
+```Why don't I just use Fail2Ban ?  The honest answer is even after configurting it, making many different types of changes, Fail2Ban failed to block any hackers properly, thus rendering Fail2Ban in  my opinion as garbage and useless.  This in turn resulted in significant losses due to hackers being able to access my PSTN/Mobile/Satellite trunk and push traffic through my IPPBX for around 10 minutes, which ultimately resulted in a $10,000 phone bill.  So instead of complaining, I made my own script that stops these criminal hackers in their tracks and since implementation of this, I have had ZERO breaches. This means Fail2Ban did NOT protect my IPPBX but the Kobrakai DID protect me and has been protecting me for more than a year now.```
 
 Description:
 
