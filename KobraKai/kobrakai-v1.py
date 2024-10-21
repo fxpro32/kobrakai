@@ -1,11 +1,12 @@
 ########################################################################################################################################################
 ########################################################################################################################################################
-########################## KobraKai - No Mercy Hacker Blocker for FreePBX Machines - By FXPRO with help from Chat GPT-4 ################################
+######################## KobraKai V1.1 - No Mercy Hacker Blocker for FreePBX Machines - By FXPRO with help from Chat GPT-4 #############################
 ########################################################################################################################################################
 # This software is a no nonsense blocker against hackers that attempt brute force attacks on your FreePBX(c) (Or Asterisk(c) / Sangoma(cc)) devices.   #
 # Note that this software is NOT meant for noobs/novices, you need to know what you are doing around a linux system and have at least basic knowledge  #
 # of iptables.  When in doubt, how to work with IP Tables, you can always consult Chat GPT for assistance.                                             #
 ########################################################################################################################################################
+######################################################### Last Update: 21 October 2024 #################################################################
 ########################################################################################################################################################
 # You are Free to distribute and edit/add to this script anywhere, with the caveat that you keep my name as the original author of this script         #
 # KobraKai - VoIP Hacker Blocker Script                                                                                                                #
@@ -45,7 +46,6 @@
 import re
 import os
 import subprocess
-import collections
 import argparse
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -54,7 +54,6 @@ import logging
 # Parse command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--debug", help="turn on debug mode", action="store_true")
-parser.add_argument("--range", help="block the entire IP range", action="store_true")
 args = parser.parse_args()
 
 # Configure the watchdog logging module based on command line argument
@@ -68,8 +67,7 @@ IGNORE_LIST_FILE = "/home/KobraKai/ignore-list.txt"
 HACKER_IPS_LIST_FILE = "/home/KobraKai/hacker-ips-list.txt"
 
 blocked_ips = set()
-# Additional Blocked IPs iptables Save function here #
-# Add the new functions here
+
 def save_iptables():
     # Save the iptables rules
     os.system("iptables-save > /etc/iptables.up.rules")
@@ -85,28 +83,23 @@ def check_hacker_ips():
     for ip in hacker_ips:
         if ip not in iptables_list:
             update_iptables(ip, 'A')
-### Closed Editing of original here ###
 
 def update_iptables(ip, action):
     print(f"Updating iptables for {ip} with action {action}")
-    # Modify IP to block range if --range argument is provided
-    if args.range:
-        ip = '.'.join(ip.split('.')[:2]) + '.0.0/16'
-    # Update iptables rule
+    # Update iptables rule immediately using subprocess.run for real-time feedback
     cmd = f"iptables -{action} INPUT -s {ip} -j DROP"
     try:
-        output = subprocess.check_output(cmd, shell=True)
+        subprocess.run(cmd, shell=True, check=True)  # Immediate execution
         print(f"Executed command: {cmd}")
-        print(f"Output: {output}")
-        save_iptables()
-    except Exception as e:
+        save_iptables()  # Save rules immediately after update
+    except subprocess.CalledProcessError as e:
         print(f"Failed to execute command: {cmd}")
         print(f"Error: {e}")
 
 def process_log_line(line):
     patterns = [
-        r"failed for '(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)",
-        r"UDP (\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b):"
+        r"failed for '(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)",  # Match failed attempts with IP
+        r"UDP (\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b):"  # Match UDP connection attempts
     ]
     ip = None
 
@@ -124,30 +117,24 @@ def process_log_line(line):
         with open(HACKER_IPS_LIST_FILE, 'r+') as f:
             hacker_ips = set(f.read().splitlines())
 
-            if ip not in ignore_ips:
-                if ip not in blocked_ips:
-                    blocked_ips.add(ip)
-                    f.write(f"{ip}\n")
-                    print(f"Suspicious IP Blocked: {ip}")
-                    update_iptables(ip, 'A')  # Append rule
+            if ip not in ignore_ips and ip not in blocked_ips:
+                blocked_ips.add(ip)
+                f.write(f"{ip}\n")
+                print(f"Blocking IP: {ip}")
+                update_iptables(ip, 'A')  # Immediately block
             elif ip in blocked_ips:
-                print(f"Removed from IPTABLES: {ip}")
-                blocked_ips.remove(ip)
-                f.seek(0)
-                f.write('\n'.join(hacker_ips))
-                f.truncate()
-                update_iptables(ip, 'D')  # Delete rule
+                print(f"Already Blocked: {ip}")
 
 class AsteriskLogHandler(FileSystemEventHandler):
     def on_modified(self, event):
         if event.src_path == ASTERISK_LOG_FILE:
             with open(event.src_path, 'r', encoding='latin-1') as f:
-                lines = collections.deque(f, 100)
+                lines = f.readlines()[-100:]  # Get the last 100 lines to process
                 for line in lines:
                     process_log_line(line)
 
 if __name__ == "__main__":
-    load_iptables()  # Load iptables config and blocked ip list
+    load_iptables()  # Load iptables config and blocked IP list
     check_hacker_ips()  # Check all ips in the hacker-ips-list.txt against iptables config
     event_handler = AsteriskLogHandler()
     observer = Observer()
