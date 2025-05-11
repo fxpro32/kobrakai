@@ -1,186 +1,167 @@
-kobrakai Readme
-KobraKai - No Mercy Hacker Blocker for FreePBX Machines - By FXPRO with help from Chat GPT-4
+# KobraKai v2.0 - No Mercy VoIP Hacker Blocker
 
-This software is a no nonsense blocker against hackers that attempt brute force attacks on your FreePBX (Or Asterisk / Sangoma) devices.
-Note that this software is NOT meant for noobs/novices, you need to know what you are doing around a linux system and have knowledge of iptables.
+## Overview
 
-You are Free to distribute this script anywhere, with the caveat that you keep my name as the original author of this script
-KobraKai - VoIP Hacker Blocker Script
-Copyright (c) 2023 FXPRO
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-IN THE SOFTWARE. USE AT YOUR OWN RISK.
+KobraKai is a powerful security tool designed to protect FreePBX/Asterisk systems from brute force attacks and unauthorized access attempts. Version 2.0 introduces significant improvements to handle the specific attack patterns you're experiencing.
 
-NOTE: DEBUG Feature should be with the following usage: [python3 kobrakai-v1.py --debug]
+## Key Features
 
-This software has been tested and running continuously on a FreePBX image (Raspberri pi 4) with great success, block all those scumbag hackers
+- **Proactive Defense**: Blocks attackers on first suspicious activity
+- **Enhanced Attack Detection**: Identifies malformed SIP packets and reconnaissance attempts
+- **Resource Efficient**: Minimizes memory, CPU, and disk usage
+- **Rate Limiting**: Blocks IPs exceeding configurable connection thresholds
+- **Subnet Blocking**: Option to block entire subnets when multiple IPs from same range attack
+- **Pattern Recognition**: Identifies and blocks common attack signatures
+- **Comprehensive Logging**: With automatic log rotation to conserve disk space
+- **Export Functionality**: Export blocked IPs for firewall integration
 
-In Short, when a VoIP hacker tries to brute force attack your machine which can ultimately result in having your bandwidth or even minutes
-stolen, this software will immediately identify and mercilessly block the IP Addresses of these low life scumbag hackers, by applying it to iptables
-rules and saving iptables, almost instantaneously.
-Even if your machine reboots or has a power failure, when it boots up again, it will automatically be running in the background and
-continue to block all hackers from brute force attacking your FreePBX machine.
+## Installation
 
-Just be aware to make sure you add your own IP Address and or Dyns Domain Name, BEFORE you activate the service, so that you don't block yourself
-incase you make an error with the SIP / IAX extension or password, otherwise this software will immediately and permanently lock you out of your
-system, without mercy.
+```bash
+# Clone the repository
+git clone https://github.com/fxpro32/kobrakai.git
+cd kobrakai
 
-If however, that happens to you, you must log in locally to the server and perform 2 actions:
-1/ You must edit the "hacker-ips-list.txt" file and remove your IP Address.
-and
-2/ Use the "iptables -D INPUT -s {ip} -j DROP" command to remove your ip address from IPTABLES.
-Note: {ip} = your IP Address (either local or external or both), depending on what result you get after issuing the "iptables -L -v" command.
+# Run the installer script as root
+sudo bash install-kobrakai.sh
+```
 
-To avoid the above mentioned, make sure you add your IP Address (Local & External / DynDns) to the "ignore-list.txt" file before executing the code
+## Important: Prevent Self-Lockout
 
-```Why don't I just use Fail2Ban ?  The honest answer is even after configurting it, making many different types of changes, Fail2Ban failed to block any hackers properly, thus rendering Fail2Ban in  my opinion as garbage and useless.  This in turn resulted in significant losses due to hackers being able to access my PSTN/Mobile/Satellite trunk and push traffic through my IPPBX for around 10 minutes, which ultimately resulted in a $10,000 phone bill.  So instead of complaining, I made my own script that stops these criminal hackers in their tracks and since implementation of this, I have had ZERO breaches. This means Fail2Ban did NOT protect my IPPBX but the Kobrakai DID protect me and has been protecting me for more than a year now.```
+Before running KobraKai, add your own IP addresses to the ignore list:
 
-Description:
+```bash
+python3 /home/KobraKai/kobrakai-utils.py ignore --action add --ip YOUR_IP
+```
 
-This script is designed to monitor an Asterisk server's log file for suspicious activities and respond by updating the server's iptables rules to block IP addresses identified as suspicious. The script uses the watchdog module to monitor the log file for changes, and it employs regular expressions to identify suspicious activities by their patterns in the log file.
+## Configuration
 
-Here's a high-level breakdown of the functions:
+Edit the config file at `/home/KobraKai/kobrakai-config.json`:
 
-save_iptables(): Saves the current iptables rules to a file. This is used after updating the iptables rules to ensure the changes persist after a system reboot.
+```json
+{
+  "log_file": "/var/log/asterisk/full",
+  "ignore_list_file": "/home/KobraKai/ignore-list.txt",
+  "hacker_ips_file": "/home/KobraKai/hacker-ips-list.txt",
+  "watch_list_file": "/home/KobraKai/watch-list.json",
+  "log_rotation_days": 7,
+  "log_max_size_mb": 10,
+  "rate_limit_attempts": 3,
+  "rate_limit_window": 60,
+  "block_subnet_threshold": 5,
+  "enable_pattern_recognition": true,
+  "enable_rate_limiting": true,
+  "enable_subnet_blocking": false,
+  "attack_patterns": {
+    "severity_high": [
+      "PJSIP syntax error",
+      "Error processing .* packet from UDP"
+    ],
+    "severity_medium": [
+      "Failed to authenticate",
+      "No matching endpoint"
+    ],
+    "severity_low": [
+      "failed for"
+    ]
+  }
+}
+```
 
-load_iptables(): Loads the iptables rules from a file. This is used at the start of the script to ensure any previously saved rules are applied.
+## Key Configuration Options
 
-check_hacker_ips(): Checks if the IPs in the hacker-ips-list.txt file are blocked in the iptables. If any IP is not blocked, the function calls update_iptables to block it.
+- `rate_limit_attempts`: Maximum connection attempts allowed in the time window (default: 3)
+- `rate_limit_window`: Time window in seconds for rate limiting (default: 60)
+- `block_subnet_threshold`: Number of IPs from same subnet to trigger subnet blocking (default: 5)
+- `enable_subnet_blocking`: Enable/disable blocking entire subnets (default: false)
+- `attack_patterns`: Regular expressions to match against log lines
 
-update_iptables(ip, action): Updates the iptables rules to either block (action='A') or unblock (action='D') the specified IP address, and then saves the updated rules using save_iptables().
+## Utility Tool
 
-process_log_line(line): Processes each line of the log file, looking for patterns that indicate suspicious activity. If a suspicious IP is found and it's not in the ignore list, the function updates the hacker-ips-list.txt file and the iptables rules to block it. If an IP in the ignore list is currently blocked, the function updates the hacker-ips-list.txt file and the iptables rules to unblock it.
+KobraKai includes a comprehensive utility tool:
 
-AsteriskLogHandler(FileSystemEventHandler): This class is a custom file system event handler. It overrides the on_modified method to process the last 100 lines of the log file whenever the log file is modified.
+```bash
+# View system status
+python3 /home/KobraKai/kobrakai-utils.py status
 
-The script begins by loading the iptables rules and checking the hacker-ips-list.txt file against the iptables. It then starts the file system observer to monitor the Asterisk log file. The script runs in an infinite loop until it's interrupted by the [systemctl stop kobrakai.service] command, at which point it stops the file system observer.
+# Analyze blocked IPs
+python3 /home/KobraKai/kobrakai-utils.py analyze
 
-For debug purposes, before enabling and starting the service, you can run the script by issuing the following command:
-python3 /home/KobraKai/kobrakai-v1.py --debug
-this will allow you to monitor the software to confirm its functionality.
+# Export blocked IPs for firewall integration
+python3 /home/KobraKai/kobrakai-utils.py export --format iptables --output /tmp/firewall-rules.txt
 
-Note that this file is provided with a list of IP Addresses that are known to be used by scumbag VoIP hackers seeking to steal your bandwidth and use your VoIP accounts which you will ultimately pay for out of your own pocket. "I speak from experience"
+# Test regex patterns against recent log entries
+python3 /home/KobraKai/kobrakai-utils.py test-regex --lines 50
 
-Now that thats out of the way, Lets get started:
+# Manage the ignore list
+python3 /home/KobraKai/kobrakai-utils.py ignore --action list
+python3 /home/KobraKai/kobrakai-utils.py ignore --action add --ip 192.168.1.100
+python3 /home/KobraKai/kobrakai-utils.py ignore --action remove --ip 192.168.1.100
+```
 
-[Note that these instructions are based on linux based machines such as the FreePBX Image for the Raspberry Pi found here: http://www.raspberry-asterisk.org/downloads/]
+## Managing the Service
 
-To make this code run, you need to do the following in preparation:
+KobraKai runs as a system service:
 
-1/ Get yourself a copy of FileZilla or WinSCP.
-2/ Make sure you have 1 folder named "KobraKai" (containing 3 files) (a) "hacker-ips-list.txt" (b) "ignore-list.txt"  (c) "kobrakai-v1.py"
-3/ Make sure you have 1 file named "kobrakai.service"
-4/ Make sure you have ssh ROOT access to the FreePBX machine.
+```bash
+# Check service status
+systemctl status kobrakai.service
 
-5/ Next, log into your server (the machine you've installed your FreePBX on via your FileZilla or WinSCP.  In this case it is the Raspberry Pi 4) but make sure you log in via ROOT !!!
-### IF YOU DO NOT DO THIS IN ROOT, NOTHING WILL WORK !!! ###  You will need to use the following protocol to transfer files [sftp://x.x.x.x]
+# Start the service
+systemctl start kobrakai.service
 
-6/ Transfer the folder [KobraKai] and ALL its contents, to the /home directory of the FreePBX machine, whilst in root access.
+# Stop the service
+systemctl stop kobrakai.service
 
-7/ Then transfer the [kobrakai.service] file to the "/etc/systemd/system/" directory of the FreePBX machine, whilst in root access.
+# Restart the service
+systemctl restart kobrakai.service
 
-8/ Next, use your linux terminal from another machine (or locally on the FreePBX machine), to enter via ssh.
-Note if you have not changed the ssh port number, the default will be 22.  It is advised you change this port number to something different and very high in number, above 65,000.
+# View logs
+tail -f /home/KobraKai/kobrakai-error.log
+```
 
-[From linux terminal] type(without the hash#): #ssh root@{server-ip} -p 22
-and then type the default/your root password for your machine. Default password= raspberry
+## Enhanced Protections in v2.0
 
-[From FreePBX terminal] type(without the hash#): #root
-and then type the default/your root password for your machine. Default password= raspberry
+KobraKai v2.0 addresses the specific issues you were facing:
 
-Once you have logged in, you must type the following to install the required applications.
+1. **Immediate Blocking of Reconnaissance Attempts**: The system now detects and blocks malformed SIP packets and syntax errors immediately, before the attacker can progress to brute force.
 
-Type: (without the hash #)
-```# apt update```
+2. **First-Attempt Blocking**: Instead of waiting for multiple failed attempts, KobraKai blocks suspicious IPs after the first failed registration attempt based on pattern recognition.
 
-then type
-```# apt install python3-pip```
+3. **Rate Limiting**: Automatically blocks IPs that exceed the configured connection rate threshold.
 
-and then type
-```# pip3 install watchdog```
+4. **Pattern Recognition**: Categorizes attacks by severity for appropriate response.
 
-and finally, type
-```# apt install netfilter-persistent```
+5. **Resource Optimization**: Minimizes resource usage while maintaining robust protection.
 
-Wait for these to install correctly with no errors.
-Note that without these 3 apps, the script will not work.
+## How It Works
 
-9/ Once that is done, we need to perform the final steps in preparation before running the script and that is we need to now prepare IPTABLES to be able to save rules and have then readily available for the script to read.
-Using your ssh terminal (or local terminal) from root prompt (because you must have root privileges): (without the hash #)
+When KobraKai detects suspicious activity:
 
-```# touch /etc/iptables.up.rules```
+1. High severity patterns (like malformed packets) trigger immediate blocking
+2. Medium severity patterns either trigger blocking or add the IP to a watch list
+3. Low severity patterns add the IP to a watch list
+4. IPs on the watch list are blocked if they continue suspicious activity
+5. Rate limiting blocks IPs making too many connection attempts
+6. All blocked IPs are saved to the hacker IPs list and iptables
 
-Then, you need to ensure that the file is writable:
-```# chmod u+w /etc/iptables.up.rules```
+## Troubleshooting
 
-Now, you can manually save the current iptables rules to this file to ensure that everything is working:
+If you encounter issues:
 
-```# iptables-save > /etc/iptables.up.rules```
+1. Check the logs: `tail -f /home/KobraKai/kobrakai-error.log`
+2. Check the service status: `systemctl status kobrakai.service`
+3. Check system resources: `python3 /home/KobraKai/kobrakai-utils.py status`
+4. Test the regex patterns: `python3 /home/KobraKai/kobrakai-utils.py test-regex`
 
-10/ Now the machine has been prepared and you are ready to activate the script.
+## License
 
-Type: (without the hash #)
+KobraKai - VoIP Hacker Blocker Script - Copyright (c) 2025 FXPRO
 
-```# systemctl enable kobrakai.service```
-This will enable the kobrakai service and enable the script to run in the background
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. USE AT YOUR OWN RISK.
 
-```# systemctl start kobrakai.service```
-This starts the kobrakai service
+## Author
 
-and to check it's operation, you must type:
-```# systemctl status kobrakai.service```
+Created and maintained by [fxpro32](https://github.com/fxpro32)
 
-A correct output that doesn't have any errors should look something like this:
-
-```root@raspbx:/KobraKai# systemctl status kobrakai.service
-------------------------------------------------------------------------------------------------------------------------------------------
-● kobrakai.service - KobraKai No Mercy VoIP Hacker Blocker for use with FreePBX (Asterisk/Sangoma) Software
-   Loaded: loaded (/etc/systemd/system/kobrakai.service; enabled; vendor preset: enabled)
-   Active: active (running) since Sun 2023-05-14 08:20:23 BST; 2s ago
- Main PID: 6551 (python3)
-    Tasks: 4 (limit: 4915)
-   CGroup: /system.slice/kobrakai.service
-           └─6551 /usr/bin/python3 /home/KobraKai/kobrakai-v1.py
-
-May 14 08:20:23 raspbx systemd[1]: Started KobraKai No Mercy Scumbag VoIP Hacker Blocker for use with FreePBX (Asterisk/Sangoma) Software.```
-------------------------------------------------------------------------------------------------------------------------------------------
-
-To check the service whilst running and any important events, you can use the following:
-
-# journalctl -u kobrakai.service
-The output of this will provide a log which looks something like this, if there are no errors (which should be the case if you've done everything described above, correctly)
-------------------------------------------------------------------------------------------------------------------------------------------
-May 14 07:20:56 raspbx systemd[1]: Stopping KobraKai No Mercy VoIP Hacker Blocker for use with FreePBX (Asterisk/Sangoma) Software...
-May 14 07:20:56 raspbx systemd[1]: kobrakai.service: Main process exited, code=killed, status=15/TERM
-May 14 07:20:56 raspbx systemd[1]: kobrakai.service: Succeeded.
-May 14 07:20:56 raspbx systemd[1]: Stopped KobraKai No Mercy VoIP Hacker Blocker for use with FreePBX (Asterisk/Sangoma) Software.
-May 14 08:20:23 raspbx systemd[1]: Started KobraKai No Mercy VoIP Hacker Blocker for use with FreePBX (Asterisk/Sangoma) Software.
-------------------------------------------------------------------------------------------------------------------------------------------
-
-In order to exit this log, you just need to press CTRL and C.
-
-If you want to check on the status of the hacker-ips-list.txt file, to see how many or if any new hacker scumbag IP Addresses have been detected and logged, just use the following command:
-
-# cat /home/KobraKai/hacker-ips-list.txt
-
-Now you can rest easy because your FreePBX machine is protected by an additional firewall process which I have working together with the essential Fail2ban (having set guest access to OFF in the advanced settings of asterisk/freepbx).  I hope this helps anyone who is frustrated or who just doesn't have the time to go through FreePBX settings to make sure everything is locked down, or whoever doesn't have the time or knowledge to protect their system.
-You are free to distribute this script, just make sure you retain my name in the top header of the script with the description.
-
-########################################################################################################################################################
-The Motivation behind writing this script:
-Speaking from experience... what motivated me to make this script is the fact that in the past, I had to pay Internode for a hacking attack that they should have blocked, but they didn't (as a request from me to block all international calls was ignored by Internode) thus resulting in a several thousand dollar bill from an attack that lasted no longer than 5 minutes.  All the complaining in the world didn't resolve the issue, even a complaint to the Communications Ombudsman didn't resolve anything (because the ombudsman is run by the communcations industry, thus protecting their own backs and shafting normal customers/end users).
-Therefore in order to AVOID such instances, the best way forward was to protect myself and others, by publishing this script for free to use by anyone that runs their own FreePBX machine, be it on a server or a simple Raspberry Pi.  My use is peronal use between family members, however this script can also be used in corporate scenarios, given the right preparation is made and significant testing between VoIP clients is made, ensuring no wrong extension numbers or wrong passwords are used on each voip client, locally or externally.
-Although I do not endorse any VoIP provider, I will however, state that my experience with Internode was abysmal and extremely disgraceful seeing that because I did not remember the exact date I called Internode support (because during that time i was using several different telephones/numbers, I was unable to find the call log) and thus Internode claimed that I didn't call them, when infact I did.
-
-Some rational and logical steps for you are as follows:
-(I am not a solicitor/lawyer and this is not legal advice)
-
-1/ NEVER speak on the telephone with your voip provider when you have a complaint.
-2/ ALWAYS send an EMAIL to make a complaint, and call them immediately after to confirm they have received the email.  If they haven't received it, then send it again and don't get off the phone until they confirm they have received it.
-3/ ALWAYS keep a paper trail when you speak to telephone companies, they have a lot of tricks they use to get out of paying for their mistakes, so a paper trail will mitigate that greatly.
-4/ ALWAYS protect yourself by utilizing as many protective measures as possible, which include iptables (when on linux based machines) as well as other firewalls etc...
-5/ If you don't make international phone calls, ask your VoIP provider to DISABLE international calls on your account, so you don't get surprises.
-6/ If you Do make international phone calls, the best way to mitigate huge hacking surprises, just incase they do manage to get through your firewall, is to ask your VoIP provider to DISABLE ALL SATELLITE CALL DESTINATIONS.
-Note that Satellite calls are usually in the range of $10 per minute and when a hacking run is made on your machine, there can be several hundred satellite calls filtered through your VoIP account and after 5 minutes, you can easily see why and how your phone bill can arrive in the thousands.
-########################################################################################################################################################
+If you encounter any issues or have questions, please open an issue on the [GitHub repository](https://github.com/fxpro32/kobrakai/issues).
