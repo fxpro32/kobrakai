@@ -8,7 +8,7 @@
 ##################################################################################
 # KOBRAKAI V2 - No Mercy Hacker Blocker for FreePBX Machines - By Pietro Casoar  #
 ##################################################################################
-#                             Version 2.0 (11-05-2025)                           #
+#                             Version 2.0 (16-05-2025)                           #
 ##################################################################################
 
 """
@@ -109,23 +109,43 @@ CONFIG = {
     "watch_list_file": "/home/KobraKai/watch-list.json",
     "log_rotation_days": 7,
     "log_max_size_mb": 10,
-    "rate_limit_attempts": 3,
-    "rate_limit_window": 60,
-    "block_subnet_threshold": 5,
+    "rate_limit_attempts": 2,  # Reduced from 3 for faster blocking
+    "rate_limit_window": 30,  # Reduced from 60 seconds
+    "block_subnet_threshold": 3,  # Reduced from 5 for faster subnet blocking
     "enable_pattern_recognition": True,
     "enable_rate_limiting": True,
     "enable_subnet_blocking": False,
     "attack_patterns": {
         "severity_high": [
             "PJSIP syntax error",
-            "Error processing .* packet from UDP"
+            "Error processing .* bytes packet from UDP",
+            "Error processing .* packet from UDP",
+            "- Failed to authenticate",  # Immediate block on first attempt
+            "- No matching endpoint found after",  # Immediate block for scanners
+            "Request 'OPTIONS'.*failed",  # Scanner detection
+            "Request 'MESSAGE'.*failed",  # Spam attempts
+            "Request 'SUBSCRIBE'.*failed",  # Presence attacks
+            "Invalid CSeq",  # Protocol violations
+            "Missing required header",  # Protocol violations
+            "Digest authentication failed",  # Auth attacks
+            "maximum retries exceeded",  # Flood detection
+            "Too many authentication attempts"  # Brute force
         ],
         "severity_medium": [
             "Failed to authenticate",
-            "No matching endpoint"
+            "No matching endpoint",
+            "Request 'NOTIFY'.*failed",
+            "Request 'REFER'.*failed",
+            "Unrecognized extension",
+            "Unable to create PJSIP channel",
+            "RTP Read error",
+            "SRTP unprotect failed"
         ],
         "severity_low": [
-            "failed for"
+            "failed for",
+            "Unknown SIP command",
+            "Bad SIP Request",
+            "Invalid SDP"
         ]
     }
 }
@@ -335,7 +355,7 @@ def block_ip(ip, reason="", severity="low"):
     return True
 
 
-def add_to_watch_list(ip, pattern_detected):
+def add_to_watch_list(ip, pattern_detected, extension=None):
     """Add an IP to the watch list for further monitoring"""
     if ip in blocked_ips or not is_valid_ip(ip):
         return
@@ -347,7 +367,8 @@ def add_to_watch_list(ip, pattern_detected):
             "first_seen": now,
             "last_seen": now,
             "attempt_count": 1,
-            "patterns": [pattern_detected]
+            "patterns": [pattern_detected],
+            "extensions_tried": []
         }
     else:
         watch_list[ip]["last_seen"] = now
@@ -355,8 +376,12 @@ def add_to_watch_list(ip, pattern_detected):
         if pattern_detected not in watch_list[ip]["patterns"]:
             watch_list[ip]["patterns"].append(pattern_detected)
 
+    # Track extensions for enumeration detection
+    if extension and extension not in watch_list[ip]["extensions_tried"]:
+        watch_list[ip]["extensions_tried"].append(extension)
+
     # Check if this IP should be blocked based on watch list data
-    if watch_list[ip]["attempt_count"] >= 3:
+    if watch_list[ip]["attempt_count"] >= 2:  # Reduced from 3 for faster blocking
         reason = f"Watch list threshold exceeded with patterns: {', '.join(watch_list[ip]['patterns'])}"
         block_ip(ip, reason, "medium")
     else:
@@ -424,10 +449,14 @@ def process_log_line(line):
 
     # Pattern detection - first extract IP address with any method
     ip_patterns = [
-        r"failed for '(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)",
+        r"failed for '(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b):\d+",  # IP:PORT format
+        r"failed for '(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)'",  # IP without port
+        r"from UDP (\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b):\d+",  # PJSIP error format
         r"from UDP (\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)",
         r"failed for '(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b):",
-        r"from '(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b):"
+        r"from '(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b):",
+        r"for '([^']+)'.*- Failed",  # Fallback pattern for any format
+        r"for '([^:]+):\d+'"  # Extract IP before port
     ]
 
     ip = None
@@ -451,6 +480,20 @@ def process_log_line(line):
     if ip in ignore_ips:
         return
 
+    # Extract extension if present
+    extension = None
+    ext_patterns = [
+        r"<sip:(\d+)@",  # Extract extension from SIP URI
+        r"'(\d+)'.*<sip:",  # Extension in quotes before SIP URI
+        r"sip:(\d+)@"  # Simple SIP URI format
+    ]
+
+    for pattern in ext_patterns:
+        match = re.search(pattern, line)
+        if match:
+            extension = match.group(1)
+            break
+
     # Check for high severity patterns - block immediately
     for pattern in CONFIG["attack_patterns"]["severity_high"]:
         if re.search(pattern, line):
@@ -458,6 +501,30 @@ def process_log_line(line):
             block_ip(ip, f"High severity pattern: {pattern}", "high")
             latest_scan_ips.append(ip)
             return
+
+    # Special check for all SIP method attacks - immediate block
+    sip_methods = ['REGISTER', 'INVITE', 'OPTIONS', 'SUBSCRIBE', 'NOTIFY', 'MESSAGE', 'REFER', 'UPDATE', 'PRACK',
+                   'INFO', 'PUBLISH']
+    for method in sip_methods:
+        if f"Request '{method}'" in line and (
+                "- Failed to authenticate" in line or "- No matching endpoint found" in line or "failed for" in line):
+            logging.warning(f"{method} attack detected from {ip}")
+            block_ip(ip, f"{method} attack - immediate block", "high")
+            latest_scan_ips.append(ip)
+            return
+
+    # Special check for PJSIP syntax errors - immediate block
+    if "Error processing" in line and "packet from UDP" in line and "PJSIP syntax error" in line:
+        logging.warning(f"PJSIP malformed packet attack detected from {ip}")
+        block_ip(ip, "PJSIP syntax error - malformed packet attack", "high")
+        latest_scan_ips.append(ip)
+        return
+
+    # Check for extension enumeration attacks
+    if ip in watch_list and len(set(watch_list[ip].get("extensions_tried", []))) > 3:
+        logging.warning(f"Extension enumeration attack detected from {ip}")
+        block_ip(ip, "Extension enumeration - multiple extensions tried", "high")
+        return
 
     # Check for medium severity patterns - may block immediately or add to watch list
     for pattern in CONFIG["attack_patterns"]["severity_medium"]:
@@ -475,14 +542,14 @@ def process_log_line(line):
                 return
 
             # Add to watch list
-            add_to_watch_list(ip, pattern)
+            add_to_watch_list(ip, pattern, extension)
             logging.info(f"Added to watch list: {ip} - Pattern: {pattern}")
             return
 
     # Check for low severity patterns - add to watch list
     for pattern in CONFIG["attack_patterns"]["severity_low"]:
         if re.search(pattern, line):
-            add_to_watch_list(ip, pattern)
+            add_to_watch_list(ip, pattern, extension)
             logging.debug(f"Low severity pattern from {ip}: {pattern}")
             return
 
