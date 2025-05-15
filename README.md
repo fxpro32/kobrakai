@@ -15,6 +15,16 @@ KobraKai is a powerful security tool designed to protect FreePBX/Asterisk system
 - **Comprehensive Logging**: With automatic log rotation to conserve disk space
 - **Export Functionality**: Export blocked IPs for firewall integration
 
+Latest update ---> The update now covers all the following attack vectors:
+- **All SIP Methods: REGISTER, INVITE, OPTIONS, SUBSCRIBE, NOTIFY, MESSAGE, REFER, UPDATE, PRACK, INFO, PUBLISH
+- **Extension Enumeration: Detects IPs trying multiple extensions
+- **Protocol Violations: Invalid headers, missing requirements, malformed SDP
+- **Authentication Attacks: Digest failures, multiple attempts, replay attacks
+- **Media Attacks: RTP/SRTP failures
+- **Flooding/DoS: Maximum retries, too many attempts
+- **Scanning: OPTIONS probes, version fingerprinting
+- **Spam: MESSAGE method abuse
+
 ## Installation
 
 ```bash
