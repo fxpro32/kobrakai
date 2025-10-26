@@ -1,5 +1,7 @@
 #!/bin/bash
-# KobraKai v2.0 Installer Script
+# KobraKai v2.0 Installer Script (UPDATED)
+# - Removes kobrakai-utils.py installation and references
+# - Updates systemd unit to the new kobrakai.service spec
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -48,7 +50,7 @@ else
     mkdir -p "$BACKUP_DIR"
 
     # Backup key files
-    for file in kobrakai-v1.py kobrakai-v2.py ignore-list.txt hacker-ips-list.txt; do
+    for file in kobrakai-v1.py kobrakai-v2.py ignore-list.txt hacker-ips-list.txt kobrakai-config.json kobrakai.log; do
         if [ -f "$INSTALL_DIR/$file" ]; then
             cp "$INSTALL_DIR/$file" "$BACKUP_DIR/"
             print_status "Backed up $file to $BACKUP_DIR"
@@ -91,13 +93,19 @@ else
 fi
 
 # Create watch list if it doesn't exist
-touch "$INSTALL_DIR/watch-list.json"
+[ -f "$INSTALL_DIR/watch-list.json" ] || touch "$INSTALL_DIR/watch-list.json"
 
-# Create logs directory
+# Create logs directory (optional) and main log file for systemd append
 LOGS_DIR="$INSTALL_DIR/logs"
 if [ ! -d "$LOGS_DIR" ]; then
     print_status "Creating logs directory at $LOGS_DIR"
     mkdir -p "$LOGS_DIR"
+fi
+
+# Ensure main combined log file exists (systemd will append to it)
+if [ ! -f "$INSTALL_DIR/kobrakai.log" ]; then
+    touch "$INSTALL_DIR/kobrakai.log"
+    print_status "Created $INSTALL_DIR/kobrakai.log"
 fi
 
 # Check if Asterisk is installed
@@ -121,7 +129,7 @@ fi
 
 # Create default config
 print_status "Creating default configuration..."
-cat > "$INSTALL_DIR/kobrakai-config.json" << EOL
+cat > "$INSTALL_DIR/kobrakai-config.json" << 'EOL'
 {
     "log_file": "/var/log/asterisk/full",
     "ignore_list_file": "/home/KobraKai/ignore-list.txt",
@@ -151,10 +159,9 @@ cat > "$INSTALL_DIR/kobrakai-config.json" << EOL
 }
 EOL
 
-# Install the script files
+# Install the main script
 print_status "Installing KobraKai scripts..."
 
-# Check if script files are in current directory
 if [ -f "./kobrakai-v2.py" ]; then
     cp ./kobrakai-v2.py "$INSTALL_DIR/kobrakai-v2.py"
     chmod +x "$INSTALL_DIR/kobrakai-v2.py"
@@ -165,29 +172,37 @@ else
     exit 1
 fi
 
-if [ -f "./kobrakai-utils.py" ]; then
-    cp ./kobrakai-utils.py "$INSTALL_DIR/kobrakai-utils.py"
-    chmod +x "$INSTALL_DIR/kobrakai-utils.py"
-    print_status "Installed kobrakai-utils.py from current directory"
-else
-    print_error "kobrakai-utils.py not found in current directory!"
-    print_error "Please make sure the utility script is in the same directory as the installer"
-    exit 1
-fi
+# NOTE: kobrakai-utils.py is deprecated and no longer installed
 
 # Set correct permissions
 chown -R root:root "$INSTALL_DIR"
 chmod -R 755 "$INSTALL_DIR"
 
-# Create systemd service
+# Create/Update systemd service to the new spec
 print_status "Creating systemd service..."
-cat > /etc/systemd/system/kobrakai.service << EOL
+cat > /etc/systemd/system/kobrakai.service << 'EOL'
+# /etc/systemd/system/kobrakai.service
 [Unit]
-Description=KobraKai - No Mercy VoIP Hacker Blocker for use with FreePBX(c) (Asterisk(c)/Sangoma(c)) Software
+Description=KobraKai VoIP Intrusion Blocker
+After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/KobraKai/kobrakai-v2.py
+Type=simple
+ExecStart=/usr/bin/python3 /home/KobraKai/kobrakai-v2.py --debug
+WorkingDirectory=/home/KobraKai
+
+# Restart behavior
 Restart=always
+RestartSec=2
+
+# Make stop fast & reliable
+KillSignal=SIGINT
+KillMode=mixed
+TimeoutStopSec=10
+
+# Log straight to your file (no nohup needed)
+StandardOutput=append:/home/KobraKai/kobrakai.log
+StandardError=append:/home/KobraKai/kobrakai.log
 
 [Install]
 WantedBy=multi-user.target
@@ -217,7 +232,7 @@ if systemctl is-active --quiet kobrakai.service; then
     print_status "KobraKai service started successfully"
 else
     print_error "KobraKai service failed to start. Checking logs..."
-    journalctl -u kobrakai.service --no-pager -n 20
+    journalctl -u kobrakai.service --no-pager -n 50
     print_error "Please fix the issues and restart the service"
 fi
 
@@ -243,16 +258,13 @@ print_status ""
 print_status "█▄▀ █▀█ █▄▄ █▀█ ▄▀█ █▄▀ ▄▀█ █"
 print_status "█ █ █▄█ █▄█ █▀▄ █▀█ █ █ █▀█ █"
 print_status ""
-print_status "CRITICAL: Add your IP addresses to the ignore list to prevent being locked out!"
-print_status "Run this command for each IP you want to whitelist:"
-print_status ""
-print_status "  python3 /home/KobraKai/kobrakai-utils.py ignore --action add --ip YOUR_IP"
+print_status "CRITICAL: Whitelist your own IPs to prevent lockout:"
+print_status "  - Edit /home/KobraKai/ignore-list.txt and add one IP per line"
 print_status ""
 print_status "Useful commands:"
 print_status "  - Check service status: systemctl status kobrakai.service"
-print_status "  - View logs: tail -f /home/KobraKai/kobrakai-error.log"
-print_status "  - System status: python3 /home/KobraKai/kobrakai-utils.py status"
+print_status "  - View live logs: tail -f /home/KobraKai/kobrakai.log"
 print_status "  - Configure settings in: /home/KobraKai/kobrakai-config.json"
 print_status ""
-print_status "If you have any issues, check the logs in /home/KobraKai/"
+print_status "If you have any issues, check the logs in /home/KobraKai/kobrakai.log or via: journalctl -u kobrakai.service"
 print_status ""
