@@ -6,24 +6,27 @@ KobraKai is a powerful security tool designed to protect FreePBX/Asterisk system
 
 ## Key Features
 
-- **Proactive Defense**: Blocks attackers on first suspicious activity
-- **Enhanced Attack Detection**: Identifies malformed SIP packets and reconnaissance attempts
-- **Resource Efficient**: Minimizes memory, CPU, and disk usage
-- **Rate Limiting**: Blocks IPs exceeding configurable connection thresholds
-- **Subnet Blocking**: Option to block entire subnets when multiple IPs from same range attack
-- **Pattern Recognition**: Identifies and blocks common attack signatures
-- **Comprehensive Logging**: With automatic log rotation to conserve disk space
-- **Export Functionality**: Export blocked IPs for firewall integration
+* **Proactive Defense:** Blocks attackers on first suspicious activity
+* **Enhanced Attack Detection:** Identifies malformed SIP packets and reconnaissance attempts
+* **Resource Efficient:** Minimizes memory, CPU, and disk usage
+* **Rate Limiting:** Blocks IPs exceeding configurable connection thresholds
+* **Subnet Blocking:** Option to block entire subnets when multiple IPs from same range attack
+* **Pattern Recognition:** Identifies and blocks common attack signatures
+* **Comprehensive Logging:** With automatic log rotation to conserve disk space
+* **Export Functionality:** Export blocked IPs for firewall integration
 
-Latest update ---> The update now covers all the following attack vectors:
-- **All SIP Methods: REGISTER, INVITE, OPTIONS, SUBSCRIBE, NOTIFY, MESSAGE, REFER, UPDATE, PRACK, INFO, PUBLISH
-- **Extension Enumeration: Detects IPs trying multiple extensions
-- **Protocol Violations: Invalid headers, missing requirements, malformed SDP
-- **Authentication Attacks: Digest failures, multiple attempts, replay attacks
-- **Media Attacks: RTP/SRTP failures
-- **Flooding/DoS: Maximum retries, too many attempts
-- **Scanning: OPTIONS probes, version fingerprinting
-- **Spam: MESSAGE method abuse
+### Latest update
+
+The update now covers all the following attack vectors:
+
+* **All SIP Methods:** REGISTER, INVITE, OPTIONS, SUBSCRIBE, NOTIFY, MESSAGE, REFER, UPDATE, PRACK, INFO, PUBLISH
+* **Extension Enumeration:** Detects IPs trying multiple extensions
+* **Protocol Violations:** Invalid headers, missing requirements, malformed SDP
+* **Authentication Attacks:** Digest failures, multiple attempts, replay attacks
+* **Media Attacks:** RTP/SRTP failures
+* **Flooding/DoS:** Maximum retries, too many attempts
+* **Scanning:** OPTIONS probes, version fingerprinting
+* **Spam:** MESSAGE method abuse
 
 ## Installation
 
@@ -36,12 +39,12 @@ cd kobrakai
 sudo bash install-kobrakai.sh
 ```
 
-## Important: Prevent Self-Lockout
+### Important: Prevent Self-Lockout
 
 Before running KobraKai, add your own IP addresses to the ignore list:
 
 ```bash
-python3 /home/KobraKai/kobrakai-utils.py ignore --action add --ip YOUR_IP
+echo "YOUR_IP" >> /home/KobraKai/ignore-list.txt
 ```
 
 ## Configuration
@@ -78,36 +81,13 @@ Edit the config file at `/home/KobraKai/kobrakai-config.json`:
 }
 ```
 
-## Key Configuration Options
+### Key Configuration Options
 
-- `rate_limit_attempts`: Maximum connection attempts allowed in the time window (default: 3)
-- `rate_limit_window`: Time window in seconds for rate limiting (default: 60)
-- `block_subnet_threshold`: Number of IPs from same subnet to trigger subnet blocking (default: 5)
-- `enable_subnet_blocking`: Enable/disable blocking entire subnets (default: false)
-- `attack_patterns`: Regular expressions to match against log lines
-
-## Utility Tool
-
-KobraKai includes a comprehensive utility tool:
-
-```bash
-# View system status
-python3 /home/KobraKai/kobrakai-utils.py status
-
-# Analyze blocked IPs
-python3 /home/KobraKai/kobrakai-utils.py analyze
-
-# Export blocked IPs for firewall integration
-python3 /home/KobraKai/kobrakai-utils.py export --format iptables --output /tmp/firewall-rules.txt
-
-# Test regex patterns against recent log entries
-python3 /home/KobraKai/kobrakai-utils.py test-regex --lines 50
-
-# Manage the ignore list
-python3 /home/KobraKai/kobrakai-utils.py ignore --action list
-python3 /home/KobraKai/kobrakai-utils.py ignore --action add --ip 192.168.1.100
-python3 /home/KobraKai/kobrakai-utils.py ignore --action remove --ip 192.168.1.100
-```
+* **rate_limit_attempts:** Maximum connection attempts allowed in the time window (default: 3)
+* **rate_limit_window:** Time window in seconds for rate limiting (default: 60)
+* **block_subnet_threshold:** Number of IPs from same subnet to trigger subnet blocking (default: 5)
+* **enable_subnet_blocking:** Enable/disable blocking entire subnets (default: false)
+* **attack_patterns:** Regular expressions to match against log lines
 
 ## Managing the Service
 
@@ -127,46 +107,51 @@ systemctl stop kobrakai.service
 systemctl restart kobrakai.service
 
 # View logs
-tail -f /home/KobraKai/kobrakai-error.log
+tail -f /home/KobraKai/kobrakai.log
 ```
 
 ## Enhanced Protections in v2.0
 
 KobraKai v2.0 addresses the specific issues you were facing:
 
-1. **Immediate Blocking of Reconnaissance Attempts**: The system now detects and blocks malformed SIP packets and syntax errors immediately, before the attacker can progress to brute force.
-
-2. **First-Attempt Blocking**: Instead of waiting for multiple failed attempts, KobraKai blocks suspicious IPs after the first failed registration attempt based on pattern recognition.
-
-3. **Rate Limiting**: Automatically blocks IPs that exceed the configured connection rate threshold.
-
-4. **Pattern Recognition**: Categorizes attacks by severity for appropriate response.
-
-5. **Resource Optimization**: Minimizes resource usage while maintaining robust protection.
+* **Immediate Blocking of Reconnaissance Attempts:** Detects and blocks malformed SIP packets and syntax errors immediately.
+* **First-Attempt Blocking:** Suspicious IPs are blocked after the first failed registration attempt based on pattern recognition.
+* **Rate Limiting:** Automatically blocks IPs that exceed the configured connection rate threshold.
+* **Pattern Recognition:** Categorizes attacks by severity for appropriate response.
+* **Resource Optimization:** Minimizes resource usage while maintaining robust protection.
 
 ## How It Works
 
 When KobraKai detects suspicious activity:
 
-1. High severity patterns (like malformed packets) trigger immediate blocking
-2. Medium severity patterns either trigger blocking or add the IP to a watch list
-3. Low severity patterns add the IP to a watch list
-4. IPs on the watch list are blocked if they continue suspicious activity
-5. Rate limiting blocks IPs making too many connection attempts
-6. All blocked IPs are saved to the hacker IPs list and iptables
+* High severity patterns (like malformed packets) trigger immediate blocking
+* Medium severity patterns either trigger blocking or add the IP to a watch list
+* Low severity patterns add the IP to a watch list
+* IPs on the watch list are blocked if they continue suspicious activity
+* Rate limiting blocks IPs making too many connection attempts
+* All blocked IPs are saved to the hacker IPs list and iptables
 
 ## Troubleshooting
 
 If you encounter issues:
 
-1. Check the logs: `tail -f /home/KobraKai/kobrakai-error.log`
-2. Check the service status: `systemctl status kobrakai.service`
-3. Check system resources: `python3 /home/KobraKai/kobrakai-utils.py status`
-4. Test the regex patterns: `python3 /home/KobraKai/kobrakai-utils.py test-regex`
+```bash
+# Check the logs
+tail -f /home/KobraKai/kobrakai.log
+
+# Check the service status
+systemctl status kobrakai.service
+```
+
+### Additional checks
+
+* Ensure Python 3 and required packages (watchdog) are installed.
+* Confirm Asterisk logs are readable by the KobraKai user.
 
 ## License
 
-KobraKai - VoIP Hacker Blocker Script - Copyright (c) 2025 FXPRO
+**KobraKai - VoIP Hacker Blocker Script**
+Copyright (c) 2025 FXPRO
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. USE AT YOUR OWN RISK.
 
