@@ -1,0 +1,35 @@
+{
+  "data_dir": "/opt/kobrakai",
+  "log_file": "/var/log/asterisk/full",
+
+  "honeypot_enabled": true,
+  "auto_detect_extensions": true,
+  "extensions_file": "/opt/kobrakai/extensions.json",
+
+  "geoip_enabled": false,
+  "geoip_database": "/opt/kobrakai/geoip/GeoLite2-Country.mmdb",
+  "allowed_countries": ["AU"],
+
+  "block_all_ipv6": true,
+
+  "whitelist_networks": [
+    "127.0.0.0/8",
+    "192.168.1.0/24",
+    "10.0.0.0/24"
+  ],
+
+  "max_requests_per_minute": 20,
+  "max_requests_per_hour": 200,
+  "burst_threshold": 5,
+  "burst_window_seconds": 3,
+
+  "auth_storm_threshold": 3,
+  "auth_storm_window": 5,
+  "auth_retry_minimum_seconds": 1,
+
+  "method_abuse_threshold": 5,
+  "method_abuse_window": 10,
+
+  "sequential_scan_threshold": 5,
+  "sequential_scan_window": 300
+}

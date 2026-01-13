@@ -1,0 +1,43 @@
+# KobraKai .gitignore
+
+# Runtime data files - these contain user-specific data
+blocked_ips.txt
+ignore_ips.txt
+extensions.json
+watch_ips.json
+last_position.txt
+learned_patterns.json
+kobrakai-config.json
+
+# Log files
+*.log
+kobrakai.log
+
+# GeoIP database (large binary file - users download their own)
+geoip/*.mmdb
+geoip/*.tar.gz
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,27 @@
+# KobraKai - Ignore IPs File
+# ===========================
+# Add IP addresses here that should NEVER be blocked.
+# One IP address per line. Comments start with #
+#
+# IMPORTANT: Add your own IP addresses before starting KobraKai!
+# Failure to do so may result in locking yourself out of your system.
+
+# Localhost - ALWAYS keep these
+127.0.0.1
+::1
+
+# Your server's IP address (prevents self-blocking)
+# Uncomment and edit the line below:
+# 192.168.1.100
+
+# Your office/home IP addresses
+# Add any static IPs you connect from:
+# 203.0.113.50
+
+# VoIP trunk provider IPs
+# Add your SIP trunk provider's signaling IPs:
+# 198.51.100.10
+# 198.51.100.11
+
+# Internal network gateway
+# 192.168.1.1
